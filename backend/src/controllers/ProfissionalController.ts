@@ -43,7 +43,7 @@ export const cadastrar = async (req: Request, res: Response) => {
     }
 
     // Valida se conselho_prof está entre os valores válidos do enum Especialidade
-    if (!Object.values(Especialidade).includes(conselho_prof)) {
+    if (typeof conselho_prof !== "number" || conselho_prof <= 0) {
       return res
         .status(400)
         .json({ message: "Conselho profissional inválido" });

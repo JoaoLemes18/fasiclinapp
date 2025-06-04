@@ -34,10 +34,10 @@ export class ProfissionalModel {
     );
   }
 
-  static async buscarConselho(abrev: string) {
+  static async buscarConselho(id: number) {
     const [rows]: any = await pool.query(
-      "SELECT IDCONSEPROFI FROM CONSEPROFI WHERE ABREVCONS = ?",
-      [abrev]
+      "SELECT IDCONSEPROFI FROM CONSEPROFI WHERE IDCONSEPROFI = ?",
+      [id]
     );
     return rows[0];
   }
