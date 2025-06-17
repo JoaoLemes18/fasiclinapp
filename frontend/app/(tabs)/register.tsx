@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -9,110 +9,96 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
+
 import { styles } from "@/styles/Register";
 import Input from "@/components/Input";
-import { especialidadesData } from "@/data/especialidades";
 import Button from "@/components/Button";
-import { useProfissional } from "../../context/ProfissionalContext"; // importe o hook
+import {
+  buscarEspecialidades,
+  Especialidade,
+} from "@/services/especialidadeService";
 
-const conselhoOptions = [
-  { label: "CRM", value: "CRM" },
-  { label: "CREA", value: "CREA" },
-  { label: "CRO", value: "CRO" },
-  { label: "CRP", value: "CRP" },
-  { label: "Outro", value: "OUTRO" },
+import { useProfissional } from "../../context/ProfissionalContext";
+import { buscarPessoaPorCPF } from "@/services/pessoaService";
+import { buscarConselhos, Conselho } from "@/services/conselhoService";
+import { cadastrarProfissional } from "@/services/profissionalService";
+
+type Pessoa = {
+  idPessoa: number;
+  NOMEPESSOA: string;
+  CPF: string;
+  DATANASCPES: string;
+  SEXOPESSOA: string;
+};
+
+interface FormState {
+  cpf: string;
+  tipo_prof: number | null;
+  status_prof: number | null;
+  cod_espec: number | null;
+  conselho_prof: number | null;
+  email_prof: string;
+  senha_prof: string;
+}
+
+const tipoProfissionais = [
+  { label: "Administrativo", value: 1 },
+  { label: "Técnico Básico", value: 2 },
+  { label: "Técnico Supervisor", value: 3 },
+  { label: "Master", value: 4 },
 ];
 
-const fakePessoas = [
-  {
-    ID_PESSOA: 8,
-    ID_OUTRO: 26,
-    CPF: "98765432100",
-    NOME: "Maria Oliveira",
-    DATA_NASC: "1985-10-12",
-    SEXO: "F",
-  },
-  {
-    ID_PESSOA: 9,
-    ID_OUTRO: 27,
-    CPF: "45678912300",
-    NOME: "Carlos Souza",
-    DATA_NASC: "1978-03-22",
-    SEXO: "M",
-  },
-  {
-    ID_PESSOA: 10,
-    ID_OUTRO: 28,
-    CPF: "45678912300",
-    NOME: "Carlos Souza",
-    DATA_NASC: "1978-03-22",
-    SEXO: "M",
-  },
-  {
-    ID_PESSOA: 11,
-    ID_OUTRO: 29,
-    CPF: "32165498700",
-    NOME: "Ana Paula",
-    DATA_NASC: "1992-07-15",
-    SEXO: "F",
-  },
-  {
-    ID_PESSOA: 12,
-    ID_OUTRO: 30,
-    CPF: "78912345600",
-    NOME: "Ricardo Lima",
-    DATA_NASC: "1980-11-30",
-    SEXO: "M",
-  },
-  {
-    ID_PESSOA: 13,
-    ID_OUTRO: 31,
-    CPF: "15975348600",
-    NOME: "Fernanda Costa",
-    DATA_NASC: "1995-02-18",
-    SEXO: "F",
-  },
-  {
-    ID_PESSOA: 14,
-    ID_OUTRO: 32,
-    CPF: "15975348600",
-    NOME: "Fernanda Costa",
-    DATA_NASC: "1995-02-18",
-    SEXO: "F",
-  },
-  {
-    ID_PESSOA: 15,
-    ID_OUTRO: 33,
-    CPF: "85274196300",
-    NOME: "Roberto Martins",
-    DATA_NASC: "1988-09-05",
-    SEXO: "M",
-  },
+const statusProfissionais = [
+  { label: "Ativo", value: 1 },
+  { label: "Inativo", value: 2 },
+  { label: "Suspenso", value: 3 },
 ];
 
 const Register = () => {
-  const { adicionarProfissional } = useProfissional(); // pega a função do contexto
+  const { adicionarProfissional } = useProfissional();
 
-  const [formState, setFormState] = useState({
+  const [formState, setFormState] = useState<FormState>({
     cpf: "",
-    tipo_prof: "",
-    status_prof: "",
-    cod_espec: "",
-    conselho_prof: "",
+    tipo_prof: null,
+    status_prof: null,
+    cod_espec: null,
+    conselho_prof: null,
     email_prof: "",
     senha_prof: "",
   });
 
-  const [loadingPessoa, setLoadingPessoa] = useState(false);
-  const [pessoaEncontrada, setPessoaEncontrada] = useState(null);
-  const [camposHabilitados, setCamposHabilitados] = useState(false);
-  const [profissionais, setProfissionais] = useState([]);
+  const [conselhos, setConselhos] = useState<Conselho[]>([]);
+  const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
 
-  const handleInput = (field, value) => {
+  const [loadingPessoa, setLoadingPessoa] = useState(false);
+  const [loadingCadastro, setLoadingCadastro] = useState(false);
+  const [pessoaEncontrada, setPessoaEncontrada] = useState<Pessoa | null>(null);
+  const [camposHabilitados, setCamposHabilitados] = useState(false);
+
+  const handleInput = <K extends keyof FormState>(
+    field: K,
+    value: FormState[K]
+  ) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
   };
 
-  const buscarPessoaPorCPF = () => {
+  useEffect(() => {
+    const carregarConselhos = async () => {
+      const data = await buscarConselhos();
+      setConselhos(data);
+    };
+    carregarConselhos();
+  }, []);
+
+  useEffect(() => {
+    const carregarEspecialidades = async () => {
+      const data = await buscarEspecialidades();
+      setEspecialidades(data);
+    };
+    carregarEspecialidades();
+  }, []);
+
+  const buscarPessoa = async () => {
     const cpf = formState.cpf.trim();
 
     if (!cpf || cpf.length !== 11) {
@@ -124,9 +110,8 @@ const Register = () => {
     setPessoaEncontrada(null);
     setCamposHabilitados(false);
 
-    setTimeout(() => {
-      const pessoa = fakePessoas.find((p) => p.CPF === cpf);
-
+    try {
+      const pessoa = await buscarPessoaPorCPF(cpf);
       if (pessoa) {
         setPessoaEncontrada(pessoa);
         setCamposHabilitados(true);
@@ -136,12 +121,22 @@ const Register = () => {
           "Nenhuma pessoa cadastrada com esse CPF."
         );
       }
-
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        Alert.alert(
+          "Pessoa não encontrada",
+          "Nenhuma pessoa cadastrada com esse CPF."
+        );
+      } else {
+        Alert.alert("Erro", "Erro ao buscar pessoa. Tente novamente.");
+      }
+      console.error("Erro ao buscar pessoa:", error);
+    } finally {
       setLoadingPessoa(false);
-    }, 1000);
+    }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const {
       tipo_prof,
       status_prof,
@@ -167,47 +162,53 @@ const Register = () => {
       !email_prof ||
       !senha_prof
     ) {
-      Alert.alert(
-        "Erro",
-        "Preencha todos os campos obrigatórios do profissional."
-      );
+      Alert.alert("Erro", "Preencha todos os campos obrigatórios.");
       return;
     }
 
-    const existe = profissionais.some(
-      (prof) => prof.id_pessoa === pessoaEncontrada.ID_PESSOA
-    );
+    setLoadingCadastro(true);
 
-    if (existe) {
-      Alert.alert("Erro", "Profissional já cadastrado para esta pessoa.");
-      return;
+    try {
+      const profissionalData = {
+        id_pessoafis: pessoaEncontrada.idPessoa,
+        tipo_profi: tipo_prof!,
+        status_profi: status_prof!,
+        conselho_prof: Number(conselho_prof),
+        email_prof,
+        senha_prof,
+        id_espec: Number(cod_espec),
+      };
+
+      console.log("📦 Dados enviados ao backend:");
+      console.log(JSON.stringify(profissionalData, null, 2));
+      console.log("👤 Pessoa encontrada:", pessoaEncontrada);
+
+      const sucesso = await cadastrarProfissional(profissionalData);
+
+      if (sucesso) {
+        adicionarProfissional(profissionalData);
+        Alert.alert("Sucesso", "Profissional cadastrado com sucesso!");
+        setFormState({
+          cpf: "",
+          tipo_prof: null,
+          status_prof: null,
+          cod_espec: null,
+          conselho_prof: null,
+          email_prof: "",
+          senha_prof: "",
+        });
+
+        setPessoaEncontrada(null);
+        setCamposHabilitados(false);
+      } else {
+        Alert.alert("Erro", "Erro ao cadastrar profissional.");
+      }
+    } catch (error) {
+      Alert.alert("Erro", "Erro ao cadastrar profissional. Tente novamente.");
+      console.error(error);
+    } finally {
+      setLoadingCadastro(false);
     }
-
-    const novoProfissional = {
-      id_pessoa: pessoaEncontrada.ID_PESSOA,
-      tipo_prof,
-      status_prof,
-      cod_espec,
-      conselho_prof,
-      email_prof,
-      senha_prof,
-    };
-
-    adicionarProfissional(novoProfissional);
-
-    Alert.alert("Sucesso", "Profissional cadastrado com sucesso!");
-
-    setFormState({
-      cpf: "",
-      tipo_prof: "",
-      status_prof: "",
-      cod_espec: "",
-      conselho_prof: "",
-      email_prof: "",
-      senha_prof: "",
-    });
-    setPessoaEncontrada(null);
-    setCamposHabilitados(false);
   };
 
   return (
@@ -218,6 +219,7 @@ const Register = () => {
           style={styles.logo}
         />
 
+        {/* CPF e botão buscar */}
         <View
           style={{
             flexDirection: "row",
@@ -227,7 +229,7 @@ const Register = () => {
         >
           <Input
             label="CPF"
-            placeholder="CPF"
+            placeholder="Digite o CPF (apenas números)"
             keyboardType="numeric"
             maxLength={11}
             value={formState.cpf}
@@ -243,7 +245,7 @@ const Register = () => {
                 justifyContent: "center",
               },
             ]}
-            onPress={buscarPessoaPorCPF}
+            onPress={buscarPessoa}
             disabled={loadingPessoa}
           >
             {loadingPessoa ? (
@@ -254,16 +256,23 @@ const Register = () => {
           </TouchableOpacity>
         </View>
 
+        {/* Dados da pessoa encontrada */}
         {pessoaEncontrada && (
           <View style={{ marginBottom: 15 }}>
-            <Text>Pessoa encontrada:</Text>
-            <Text>Nome: {pessoaEncontrada.NOME}</Text>
-            <Text>CPF: {pessoaEncontrada.CPF}</Text>
-            <Text>Data Nasc: {pessoaEncontrada.DATA_NASC}</Text>
-            <Text>Sexo: {pessoaEncontrada.SEXO}</Text>
+            <Text style={{ fontWeight: "bold", marginBottom: 5 }}>
+              Pessoa encontrada:
+            </Text>
+            <Text>Nome: {pessoaEncontrada.nome || pessoaEncontrada.NOME}</Text>
+            <Text>CPF: {pessoaEncontrada.cpf || pessoaEncontrada.CPF}</Text>
+            <Text>
+              Data Nasc:{" "}
+              {pessoaEncontrada.dataNascimento || pessoaEncontrada.DATA_NASC}
+            </Text>
+            <Text>Sexo: {pessoaEncontrada.sexo || pessoaEncontrada.SEXO}</Text>
           </View>
         )}
 
+        {/* Campos do profissional */}
         <Input
           label="E-mail"
           placeholder="email@exemplo.com"
@@ -284,12 +293,7 @@ const Register = () => {
 
         <Text style={styles.label}>Tipo do profissional</Text>
         <View style={styles.buttonGroup}>
-          {[
-            { label: "Administrativo", value: "1" },
-            { label: "Estagiário", value: "2" },
-            { label: "Supervisor", value: "3" },
-            { label: "Master", value: "4" },
-          ].map((item) => (
+          {tipoProfissionais.map((item) => (
             <TouchableOpacity
               key={item.value}
               style={[
@@ -309,11 +313,7 @@ const Register = () => {
 
         <Text style={styles.label}>Status do profissional</Text>
         <View style={styles.buttonGroup}>
-          {[
-            { label: "Ativo", value: "1" },
-            { label: "Inativo", value: "2" },
-            { label: "Suspenso", value: "3" },
-          ].map((item) => (
+          {statusProfissionais.map((item) => (
             <TouchableOpacity
               key={item.value}
               style={[
@@ -333,24 +333,23 @@ const Register = () => {
 
         <Text style={styles.label}>Especialidade do Profissional</Text>
         <View style={styles.buttonGroup}>
-          {especialidadesData.map((especialidade) => (
+          {especialidades.map((item) => (
             <TouchableOpacity
-              key={especialidade.cod_especialidade}
+              key={item.IDESPEC}
               style={[
                 styles.button,
-                formState.cod_espec === especialidade.cod_especialidade &&
+                formState.cod_espec === String(item.IDESPEC) &&
                   styles.selectedButton,
                 !camposHabilitados && { opacity: 0.5 },
               ]}
               onPress={() =>
                 camposHabilitados &&
-                handleInput("cod_espec", especialidade.cod_especialidade)
+                handleInput("cod_espec", String(item.IDESPEC))
               }
               disabled={!camposHabilitados}
             >
               <Text style={styles.buttonText}>
-                {especialidade.cod_especialidade} -{" "}
-                {especialidade.especialidade}
+                {item.CODESPEC} - {item.DESCESPEC}
               </Text>
             </TouchableOpacity>
           ))}
@@ -358,28 +357,32 @@ const Register = () => {
 
         <Text style={styles.label}>Conselho Profissional</Text>
         <View style={styles.buttonGroup}>
-          {conselhoOptions.map((item) => (
+          {conselhos.map((item) => (
             <TouchableOpacity
-              key={item.value}
+              key={item.IDCONSEPROFI}
               style={[
                 styles.button,
-                formState.conselho_prof === item.value && styles.selectedButton,
+                formState.conselho_prof === String(item.IDCONSEPROFI) &&
+                  styles.selectedButton,
                 !camposHabilitados && { opacity: 0.5 },
               ]}
               onPress={() =>
-                camposHabilitados && handleInput("conselho_prof", item.value)
+                camposHabilitados &&
+                handleInput("conselho_prof", String(item.IDCONSEPROFI))
               }
               disabled={!camposHabilitados}
             >
-              <Text style={styles.buttonText}>{item.label}</Text>
+              <Text style={styles.buttonText}>
+                {item.ABREVCONS} - {item.DESCRICAO}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
 
         <Button
+          title={loadingCadastro ? "Cadastrando..." : "Cadastrar Profissional"}
           onPress={handleSubmit}
-          content={"Cadastrar"}
-          disabled={!camposHabilitados}
+          content="Cadastrar Profissional" // Adicione esta prop
         />
       </ScrollView>
     </SafeAreaView>

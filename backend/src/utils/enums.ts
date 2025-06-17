@@ -1,20 +1,20 @@
 export enum Especialidade {
-  BIOMEDICINA = "00",
-  ENFERMAGEM = "10",
-  ESTETICA_COSMETOLOGIA = "20",
-  FISIOTERAPIA = "30",
-  NUTRICAO = "40",
-  ODONTOLOGIA = "50",
-  PSICOLOGIA = "70",
-  NPJ = "80",
-  MEDICINA = "90",
+  FISIOTERAPIA = 1,
+  MEDICINA = 58,
+  PSICOLOGIA = 60,
+  ODONTOLOGIA = 61,
+  NUTRICAO = 62,
+  ESTETICA_COSMETOLOGIA = 64,
+  ENFERMAGEM = 65,
+  BIOMEDICINA = 67,
+  NPJ = 68,
 }
 
 export enum TipoProfissional {
-  ADMINISTRATIVO = "1",
-  TECNICO_BASICO = "2",
-  TECNICO_SUPERVISOR = "3",
-  MASTER = "4",
+  ADMINISTRATIVO = 1,
+  TECNICO_BASICO = 2,
+  TECNICO_SUPERVISOR = 3,
+  MASTER = 4,
 }
 
 export enum StatusProfissional {

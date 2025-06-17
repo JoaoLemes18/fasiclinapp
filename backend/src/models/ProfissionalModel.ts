@@ -18,7 +18,7 @@ export class ProfissionalModel {
         data.id_conseprofi,
       ]
     );
-    return result.insertId; // Retorna o ID gerado do profissional
+    return result.insertId;
   }
 
   static async inserirUsuario(data: {
@@ -31,6 +31,16 @@ export class ProfissionalModel {
       (ID_PROFISSIO, LOGUSUARIO, SENHAUSUA) 
       VALUES (?, ?, ?)`,
       [data.id_profissio, data.email, data.senha]
+    );
+  }
+
+  static async inserirEspecialidade(data: {
+    id_profissio: number;
+    id_espec: number;
+  }) {
+    await pool.query(
+      `INSERT INTO PROFI_ESPEC (ID_PROFISSIO, ID_ESPEC) VALUES (?, ?)`,
+      [data.id_profissio, data.id_espec]
     );
   }
 
