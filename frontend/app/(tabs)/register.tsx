@@ -35,8 +35,8 @@ interface FormState {
   cpf: string;
   tipo_prof: number | null;
   status_prof: number | null;
-  cod_espec: number | null;
-  conselho_prof: number | null;
+  cod_espec: string | null; // <-- string aqui
+  conselho_prof: string | null; // <-- string aqui
   email_prof: string;
   senha_prof: string;
 }
@@ -170,13 +170,13 @@ const Register = () => {
 
     try {
       const profissionalData = {
-        id_pessoafis: pessoaEncontrada.idPessoa,
-        tipo_profi: tipo_prof!,
-        status_profi: status_prof!,
-        conselho_prof: Number(conselho_prof),
-        email_prof,
-        senha_prof,
-        id_espec: Number(cod_espec),
+        idPessoa: pessoaEncontrada.idPessoa,
+        tipoProf: String(tipo_prof),
+        statusProf: String(status_prof),
+        conselhoProf: String(conselho_prof),
+        emailProf: email_prof,
+        senhaProf: senha_prof,
+        codEspec: String(cod_espec),
       };
 
       console.log("📦 Dados enviados ao backend:");

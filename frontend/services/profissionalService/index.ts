@@ -10,7 +10,27 @@ export interface ProfissionalCadastro {
   emailProf: string;
   senhaProf: string;
 }
+export interface Profissional {
+  IDPROFISSIO: number;
+  NOMEPESSOA: string;
+  TIPOPROFI: string;
+  STATUSPROFI: string;
+  IDESPEC: number;
+  CODESPEC: string;
+  DESCESPEC: string;
+  IDCONSEPROFI: number;
+  NOMECONSE: string;
+}
 
+export async function listarProfissionais(): Promise<Profissional[]> {
+  try {
+    const response = await axios.get(`${api}/profissionais`);
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao listar profissionais:", error);
+    return [];
+  }
+}
 export async function cadastrarProfissional(
   data: ProfissionalCadastro
 ): Promise<boolean> {

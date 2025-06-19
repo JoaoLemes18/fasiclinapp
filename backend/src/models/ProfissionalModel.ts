@@ -18,7 +18,7 @@ export class ProfissionalModel {
         data.id_conseprofi,
       ]
     );
-    return result.insertId;
+    return result.insertId; // Retorna o ID gerado do profissional
   }
 
   static async inserirUsuario(data: {
@@ -34,7 +34,14 @@ export class ProfissionalModel {
     );
   }
 
-  static async inserirEspecialidade(data: {
+  static async buscarConselho(id: number) {
+    const [rows]: any = await pool.query(
+      "SELECT IDCONSEPROFI FROM CONSEPROFI WHERE IDCONSEPROFI = ?",
+      [id]
+    );
+    return rows[0];
+  }
+  static async inserirProfiEspec(data: {
     id_profissio: number;
     id_espec: number;
   }) {
@@ -43,12 +50,28 @@ export class ProfissionalModel {
       [data.id_profissio, data.id_espec]
     );
   }
+  static async buscarProfissionais() {
+    const [rows]: any = await pool.query(`
+    SELECT 
+      p.IDPROFISSIO,
+      p.ID_PESSOAFIS,
+      pf.CPFPESSOA,
+      pf.NOMEPESSOA,
+      p.TIPOPROFI,
+      p.STATUSPROFI,
+      p.ID_CONSEPROFI,
+      p.ID_SUPPROFI,
+      u.LOGUSUARIO,
+      u.SENHAUSUA,
+      e.IDESPEC,
+      e.DESCESPEC
+    FROM PROFISSIONAL p
+    JOIN PESSOAFIS pf ON p.ID_PESSOAFIS = pf.IDPESSOAFIS
+    LEFT JOIN USUARIO u ON u.ID_PROFISSIO = p.IDPROFISSIO
+    LEFT JOIN PROFI_ESPEC pe ON pe.ID_PROFISSIO = p.IDPROFISSIO
+    LEFT JOIN ESPECIALIDADE e ON e.IDESPEC = pe.ID_ESPEC
+  `);
 
-  static async buscarConselho(id: number) {
-    const [rows]: any = await pool.query(
-      "SELECT IDCONSEPROFI FROM CONSEPROFI WHERE IDCONSEPROFI = ?",
-      [id]
-    );
-    return rows[0];
+    return rows;
   }
 }
