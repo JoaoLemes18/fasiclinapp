@@ -16,7 +16,7 @@ export class ProfissionalService {
     const senhaHash = await bcrypt.hash(data.senha_prof, 10);
 
     await ProfissionalModel.inserirUsuario({
-      id_profissio: profissional.IDPROFISSIO,
+  id_profissio: profissional, // aqui usamos direto o ID
       email: data.email_prof,
       senha: senhaHash,
     });

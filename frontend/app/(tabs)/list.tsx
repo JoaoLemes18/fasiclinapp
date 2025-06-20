@@ -34,7 +34,7 @@ const statusProfissionalLabel = (codigo: string) => {
   }
 };
 
-export default function Second() {
+export default function List() {
   const [profissionais, setProfissionais] = useState<Profissional[]>([]);
   const [carregando, setCarregando] = useState(true);
 

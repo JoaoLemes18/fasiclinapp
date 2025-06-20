@@ -9,6 +9,7 @@ const Tab = createBottomTabNavigator();
 const Tabs = () => {
   return (
     <Tab.Navigator
+      initialRouteName="Cadastro de Profissional" // <- aqui define a primeira tela
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;

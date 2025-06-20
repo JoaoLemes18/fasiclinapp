@@ -50,8 +50,8 @@ export class ProfissionalModel {
       [data.id_profissio, data.id_espec]
     );
   }
-  static async buscarProfissionais() {
-    const [rows]: any = await pool.query(`
+ static async buscarProfissionais() {
+  const [rows]: any = await pool.query(`
     SELECT 
       p.IDPROFISSIO,
       p.ID_PESSOAFIS,
@@ -72,6 +72,7 @@ export class ProfissionalModel {
     LEFT JOIN ESPECIALIDADE e ON e.IDESPEC = pe.ID_ESPEC
   `);
 
-    return rows;
-  }
+  return rows;
+}
+
 }
