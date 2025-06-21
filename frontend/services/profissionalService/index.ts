@@ -12,6 +12,8 @@ export interface ProfissionalCadastro {
 }
 
 export interface Profissional {
+  DESCRICAO: string;
+  ABREVCONS: string;
   IDPROFISSIO: number;
   NOMEPESSOA: string;
   TIPOPROFI: string;
