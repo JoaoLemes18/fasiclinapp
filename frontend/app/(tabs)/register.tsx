@@ -18,7 +18,9 @@ import {
   Especialidade,
 } from "@/services/especialidadeService";
 
-import { useProfissional } from "../../context/ProfissionalContext";
+import { deveMostrarCamposEspeciais } from "@/utils/visibilidadeCampos";
+import { useProfissional } from "@/context/ProfissionalContext";
+import { obterIdConselhoPorEspecialidade } from "@/utils/mapaEspecialidade";
 import { buscarPessoaPorCPF } from "@/services/pessoaService";
 import { buscarConselhos, Conselho } from "@/services/conselhoService";
 import { cadastrarProfissional } from "@/services/profissionalService";
@@ -35,8 +37,8 @@ interface FormState {
   cpf: string;
   tipo_prof: number | null;
   status_prof: number | null;
-  cod_espec: string | null; // <-- string aqui
-  conselho_prof: string | null; // <-- string aqui
+  cod_espec: string | null;
+  conselho_prof: string | null;
   email_prof: string;
   senha_prof: string;
 }
@@ -68,18 +70,46 @@ const Register = () => {
   });
 
   const [conselhos, setConselhos] = useState<Conselho[]>([]);
+  const [conselhosFiltrados, setConselhosFiltrados] = useState<Conselho[]>([]);
   const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
-
   const [loadingPessoa, setLoadingPessoa] = useState(false);
   const [loadingCadastro, setLoadingCadastro] = useState(false);
   const [pessoaEncontrada, setPessoaEncontrada] = useState<Pessoa | null>(null);
   const [camposHabilitados, setCamposHabilitados] = useState(false);
+
+  const filtrarConselhosPorEspecialidade = (idEspec: number) => {
+    const idConselho = obterIdConselhoPorEspecialidade(idEspec);
+    if (idConselho && conselhos.length > 0) {
+      const conselhoFiltrado = conselhos.filter(
+        (c) => c.IDCONSEPROFI === idConselho
+      );
+      setConselhosFiltrados(conselhoFiltrado);
+    } else {
+      setConselhosFiltrados([]);
+    }
+  };
 
   const handleInput = <K extends keyof FormState>(
     field: K,
     value: FormState[K]
   ) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
+
+    // Se mudou a especialidade, filtre os conselhos
+    if (field === "cod_espec" && typeof value === "string") {
+      filtrarConselhosPorEspecialidade(Number(value));
+      setFormState((prev) => ({ ...prev, conselho_prof: null }));
+    }
+
+    // Se o tipo for Administrativo ou Master, zere os campos de especialidade/conselho
+    if (field === "tipo_prof" && (value === 1 || value === 4)) {
+      setFormState((prev) => ({
+        ...prev,
+        cod_espec: null,
+        conselho_prof: null,
+      }));
+      setConselhosFiltrados([]);
+    }
   };
 
   useEffect(() => {
@@ -154,29 +184,37 @@ const Register = () => {
       return;
     }
 
-    if (
-      !tipo_prof ||
-      !status_prof ||
-      !cod_espec ||
-      !conselho_prof ||
-      !email_prof ||
-      !senha_prof
-    ) {
+    if (!tipo_prof || !status_prof || !email_prof || !senha_prof) {
       Alert.alert("Erro", "Preencha todos os campos obrigatórios.");
+      return;
+    }
+
+    // Apenas Técnico Básico ou Supervisor exigem especialidade/conselho
+    const exigeEspecialidade = tipo_prof !== 1 && tipo_prof !== 4;
+
+    if (exigeEspecialidade && (!cod_espec || !conselho_prof)) {
+      Alert.alert(
+        "Erro",
+        "Especialidade e conselho são obrigatórios para esse tipo de profissional."
+      );
       return;
     }
 
     setLoadingCadastro(true);
 
     try {
+      const exigeEspec = tipo_prof !== 1 && tipo_prof !== 4;
+
       const profissionalData = {
         idPessoa: pessoaEncontrada.idPessoa,
         tipoProf: String(tipo_prof),
         statusProf: String(status_prof),
-        conselhoProf: String(conselho_prof),
         emailProf: email_prof,
         senhaProf: senha_prof,
-        codEspec: String(cod_espec),
+        ...(exigeEspec && {
+          conselhoProf: String(conselho_prof),
+          codEspec: String(cod_espec),
+        }),
       };
 
       console.log("📦 Dados enviados ao backend:");
@@ -200,6 +238,7 @@ const Register = () => {
 
         setPessoaEncontrada(null);
         setCamposHabilitados(false);
+        setConselhosFiltrados([]);
       } else {
         Alert.alert("Erro", "Erro ao cadastrar profissional.");
       }
@@ -330,59 +369,62 @@ const Register = () => {
             </TouchableOpacity>
           ))}
         </View>
+        {deveMostrarCamposEspeciais(formState.tipo_prof) && (
+          <>
+            <Text style={styles.label}>Especialidade do Profissional</Text>
+            <View style={styles.buttonGroup}>
+              {especialidades.map((item) => (
+                <TouchableOpacity
+                  key={item.IDESPEC}
+                  style={[
+                    styles.button,
+                    formState.cod_espec === String(item.IDESPEC) &&
+                      styles.selectedButton,
+                    !camposHabilitados && { opacity: 0.5 },
+                  ]}
+                  onPress={() =>
+                    camposHabilitados &&
+                    handleInput("cod_espec", String(item.IDESPEC))
+                  }
+                  disabled={!camposHabilitados}
+                >
+                  <Text style={styles.buttonText}>
+                    {item.CODESPEC} - {item.DESCESPEC}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
-        <Text style={styles.label}>Especialidade do Profissional</Text>
-        <View style={styles.buttonGroup}>
-          {especialidades.map((item) => (
-            <TouchableOpacity
-              key={item.IDESPEC}
-              style={[
-                styles.button,
-                formState.cod_espec === String(item.IDESPEC) &&
-                  styles.selectedButton,
-                !camposHabilitados && { opacity: 0.5 },
-              ]}
-              onPress={() =>
-                camposHabilitados &&
-                handleInput("cod_espec", String(item.IDESPEC))
-              }
-              disabled={!camposHabilitados}
-            >
-              <Text style={styles.buttonText}>
-                {item.CODESPEC} - {item.DESCESPEC}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <Text style={styles.label}>Conselho Profissional</Text>
-        <View style={styles.buttonGroup}>
-          {conselhos.map((item) => (
-            <TouchableOpacity
-              key={item.IDCONSEPROFI}
-              style={[
-                styles.button,
-                formState.conselho_prof === String(item.IDCONSEPROFI) &&
-                  styles.selectedButton,
-                !camposHabilitados && { opacity: 0.5 },
-              ]}
-              onPress={() =>
-                camposHabilitados &&
-                handleInput("conselho_prof", String(item.IDCONSEPROFI))
-              }
-              disabled={!camposHabilitados}
-            >
-              <Text style={styles.buttonText}>
-                {item.ABREVCONS} - {item.DESCRICAO}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+            <Text style={styles.label}>Conselho Profissional</Text>
+            <View style={styles.buttonGroup}>
+              {conselhosFiltrados.map((item) => (
+                <TouchableOpacity
+                  key={item.IDCONSEPROFI}
+                  style={[
+                    styles.button,
+                    formState.conselho_prof === String(item.IDCONSEPROFI) &&
+                      styles.selectedButton,
+                    !camposHabilitados && { opacity: 0.5 },
+                  ]}
+                  onPress={() =>
+                    camposHabilitados &&
+                    handleInput("conselho_prof", String(item.IDCONSEPROFI))
+                  }
+                  disabled={!camposHabilitados}
+                >
+                  <Text style={styles.buttonText}>
+                    {item.ABREVCONS} - {item.DESCRICAO}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        )}
 
         <Button
           title={loadingCadastro ? "Cadastrando..." : "Cadastrar Profissional"}
           onPress={handleSubmit}
-          content="Cadastrar Profissional" // Adicione esta prop
+          content="Cadastrar Profissional"
         />
       </ScrollView>
     </SafeAreaView>

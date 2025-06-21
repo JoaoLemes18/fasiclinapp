@@ -4,6 +4,7 @@ import {
   listarProfissionais,
   Profissional,
 } from "@/services/profissionalService";
+import { getCodeSpecByIdEspec } from "@/utils/especialidade";
 
 // Funções auxiliares para enums
 const tipoProfissionalLabel = (codigo: string) => {
@@ -11,7 +12,7 @@ const tipoProfissionalLabel = (codigo: string) => {
     case "1":
       return "Administrativo";
     case "2":
-      return "Estagiário";
+      return "Técnico Básico";
     case "3":
       return "Supervisor";
     case "4":
@@ -65,14 +66,13 @@ export default function List() {
           <Text>Tipo: {tipoProfissionalLabel(item.TIPOPROFI ?? "")}</Text>
           <Text>Status: {statusProfissionalLabel(item.STATUSPROFI ?? "")}</Text>
           <Text>
-            Conselho:{" "}
-            {item.ID_CONSEPROFI ? item.ID_CONSEPROFI : "Não informado"}
+            Conselho: {item.ABREVCONS ?? "N/A"} -{" "}
+            {item.DESCRICAO ?? "Não informado"}
           </Text>
+
           <Text>
-            Especialidade:{" "}
-            {(item.IDESPEC ? item.IDESPEC.toString() : "??") +
-              " - " +
-              (item.DESCESPEC ?? "??")}
+            Especialidade: {getCodeSpecByIdEspec(item.IDESPEC)} -{" "}
+            {item.DESCESPEC ?? "Não é necessário"}
           </Text>
         </View>
       )}

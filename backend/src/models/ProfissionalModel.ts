@@ -50,29 +50,31 @@ export class ProfissionalModel {
       [data.id_profissio, data.id_espec]
     );
   }
- static async buscarProfissionais() {
-  const [rows]: any = await pool.query(`
-    SELECT 
-      p.IDPROFISSIO,
-      p.ID_PESSOAFIS,
-      pf.CPFPESSOA,
-      pf.NOMEPESSOA,
-      p.TIPOPROFI,
-      p.STATUSPROFI,
-      p.ID_CONSEPROFI,
-      p.ID_SUPPROFI,
-      u.LOGUSUARIO,
-      u.SENHAUSUA,
-      e.IDESPEC,
-      e.DESCESPEC
-    FROM PROFISSIONAL p
-    JOIN PESSOAFIS pf ON p.ID_PESSOAFIS = pf.IDPESSOAFIS
-    LEFT JOIN USUARIO u ON u.ID_PROFISSIO = p.IDPROFISSIO
-    LEFT JOIN PROFI_ESPEC pe ON pe.ID_PROFISSIO = p.IDPROFISSIO
-    LEFT JOIN ESPECIALIDADE e ON e.IDESPEC = pe.ID_ESPEC
+  static async buscarProfissionais() {
+    const [rows]: any = await pool.query(`
+  SELECT 
+  p.IDPROFISSIO,
+  p.ID_PESSOAFIS,
+  pf.CPFPESSOA,
+  pf.NOMEPESSOA,
+  p.TIPOPROFI,
+  p.STATUSPROFI,
+  c.DESCRICAO ,    
+  c.ABREVCONS ,       
+  p.ID_SUPPROFI,
+  u.LOGUSUARIO,
+  u.SENHAUSUA,
+  e.IDESPEC,
+  e.DESCESPEC
+FROM PROFISSIONAL p
+JOIN PESSOAFIS pf ON p.ID_PESSOAFIS = pf.IDPESSOAFIS
+LEFT JOIN USUARIO u ON u.ID_PROFISSIO = p.IDPROFISSIO
+LEFT JOIN PROFI_ESPEC pe ON pe.ID_PROFISSIO = p.IDPROFISSIO
+LEFT JOIN ESPECIALIDADE e ON e.IDESPEC = pe.ID_ESPEC
+LEFT JOIN CONSEPROFI c ON c.IDCONSEPROFI = p.ID_CONSEPROFI;
+
   `);
 
-  return rows;
-}
-
+    return rows;
+  }
 }

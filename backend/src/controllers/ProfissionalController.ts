@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { ProfissionalModel } from "../models/ProfissionalModel";
-import { TipoProfissional, StatusProfissional } from "../utils/enums"; // ajuste o caminho conforme seu projeto
+import { TipoProfissional, StatusProfissional } from "../utils/enums";
+
+const ID_CONSELHO_DUMMY = 69;
 
 export const cadastrar = async (req: Request, res: Response) => {
   try {
@@ -15,24 +17,27 @@ export const cadastrar = async (req: Request, res: Response) => {
       codEspec,
     } = req.body;
 
-    // Validação de campos obrigatórios
-    if (
-      !idPessoa ||
-      tipoProf == null ||
-      statusProf == null ||
-      !conselhoProf ||
-      !emailProf ||
-      !senhaProf ||
-      !codEspec
-    ) {
-      return res
-        .status(400)
-        .json({ message: "Todos os campos são obrigatórios" });
-    }
-
     // Converte tipo/status para number antes de validar com enum
     const tipo = Number(tipoProf);
     const status = Number(statusProf);
+
+    const isSemConselho =
+      tipo === TipoProfissional.ADMINISTRATIVO ||
+      tipo === TipoProfissional.MASTER;
+
+    // Validação condicional
+    if (
+      !idPessoa ||
+      tipo == null ||
+      status == null ||
+      !emailProf ||
+      !senhaProf ||
+      (!isSemConselho && (!conselhoProf || !codEspec))
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Campos obrigatórios ausentes ou inválidos" });
+    }
 
     if (!Object.values(TipoProfissional).includes(tipo)) {
       return res.status(400).json({ message: "Tipo profissional inválido" });
@@ -42,24 +47,33 @@ export const cadastrar = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Status profissional inválido" });
     }
 
-    const conselho = await ProfissionalModel.buscarConselho(
-      Number(conselhoProf)
-    );
-    if (!conselho) {
-      return res.status(400).json({ message: "Conselho não encontrado" });
+    let conselhoId: number;
+
+    if (isSemConselho) {
+      conselhoId = ID_CONSELHO_DUMMY;
+    } else {
+      const conselho = await ProfissionalModel.buscarConselho(
+        Number(conselhoProf)
+      );
+      if (!conselho) {
+        return res.status(400).json({ message: "Conselho não encontrado" });
+      }
+      conselhoId = conselho.IDCONSEPROFI;
     }
 
     const idProfissional = await ProfissionalModel.inserirProfissional({
       id_pessoafis: Number(idPessoa),
-      tipo_profi: tipo.toString(), // grava como string no banco
+      tipo_profi: tipo.toString(),
       status_profi: status.toString(),
-      id_conseprofi: conselho.IDCONSEPROFI,
+      id_conseprofi: conselhoId,
     });
 
-    await ProfissionalModel.inserirProfiEspec({
-      id_profissio: idProfissional,
-      id_espec: Number(codEspec),
-    });
+    if (!isSemConselho && codEspec) {
+      await ProfissionalModel.inserirProfiEspec({
+        id_profissio: idProfissional,
+        id_espec: Number(codEspec),
+      });
+    }
 
     const senhaCriptografada = await bcrypt.hash(senhaProf, 10);
 
@@ -78,6 +92,7 @@ export const cadastrar = async (req: Request, res: Response) => {
   }
 };
 
+// ✅ listarProfissionais continua igual
 export const listarProfissionais = async (req: Request, res: Response) => {
   try {
     const profissionais = await ProfissionalModel.buscarProfissionais();

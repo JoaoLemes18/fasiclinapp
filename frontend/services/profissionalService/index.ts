@@ -3,13 +3,14 @@ import { api } from "..";
 
 export interface ProfissionalCadastro {
   idPessoa: number;
-  tipoProf: string;
+  tipoProf: string; // ex: "1"
   statusProf: string;
-  codEspec: string;
-  conselhoProf: string;
+  codEspec?: string; // agora opcionais
+  conselhoProf?: string; // idem
   emailProf: string;
   senhaProf: string;
 }
+
 export interface Profissional {
   IDPROFISSIO: number;
   NOMEPESSOA: string;
@@ -31,11 +32,30 @@ export async function listarProfissionais(): Promise<Profissional[]> {
     return [];
   }
 }
+
 export async function cadastrarProfissional(
   data: ProfissionalCadastro
 ): Promise<boolean> {
   try {
-    await axios.post(`${api}/profissionais`, data);
+    const tipo = Number(data.tipoProf);
+
+    const payload = {
+      idPessoa: data.idPessoa,
+      tipoProf: data.tipoProf,
+      statusProf: data.statusProf,
+      emailProf: data.emailProf,
+      senhaProf: data.senhaProf,
+    };
+
+    // Somente adiciona se tipo exigir
+    if (tipo !== 1 && tipo !== 4) {
+      Object.assign(payload, {
+        conselhoProf: data.conselhoProf,
+        codEspec: data.codEspec,
+      });
+    }
+
+    await axios.post(`${api}/profissionais`, payload);
     return true;
   } catch (error) {
     console.error("Erro ao cadastrar profissional:", error);
