@@ -17,15 +17,12 @@ export const cadastrar = async (req: Request, res: Response) => {
       codEspec,
     } = req.body;
 
-    // Converte tipo/status para number antes de validar com enum
     const tipo = Number(tipoProf);
     const status = Number(statusProf);
-
     const isSemConselho =
       tipo === TipoProfissional.ADMINISTRATIVO ||
       tipo === TipoProfissional.MASTER;
 
-    // Validação condicional
     if (
       !idPessoa ||
       tipo == null ||
@@ -48,7 +45,6 @@ export const cadastrar = async (req: Request, res: Response) => {
     }
 
     let conselhoId: number;
-
     if (isSemConselho) {
       conselhoId = ID_CONSELHO_DUMMY;
     } else {
@@ -92,7 +88,75 @@ export const cadastrar = async (req: Request, res: Response) => {
   }
 };
 
-// ✅ listarProfissionais continua igual
+export const atualizarProfissional = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    const {
+      tipoProf,
+      statusProf,
+      conselhoProf,
+      codEspec,
+      emailProf,
+      senhaProf,
+    } = req.body;
+
+    if (!id || !tipoProf || !statusProf || !emailProf) {
+      return res.status(400).json({ message: "Campos obrigatórios ausentes" });
+    }
+
+    const tipo = Number(tipoProf);
+    const status = Number(statusProf);
+
+    if (!Object.values(TipoProfissional).includes(tipo)) {
+      return res.status(400).json({ message: "Tipo profissional inválido" });
+    }
+
+    if (!Object.values(StatusProfissional).includes(status)) {
+      return res.status(400).json({ message: "Status profissional inválido" });
+    }
+
+    const isSemConselho =
+      tipo === TipoProfissional.ADMINISTRATIVO ||
+      tipo === TipoProfissional.MASTER;
+
+    const conselhoId = isSemConselho ? ID_CONSELHO_DUMMY : Number(conselhoProf);
+    const especId = isSemConselho ? null : Number(codEspec);
+
+    await ProfissionalModel.atualizarProfissional(id, {
+      tipo_profi: tipo.toString(),
+      status_profi: status.toString(),
+      id_conseprofi: conselhoId,
+    });
+
+    if (especId) {
+      await ProfissionalModel.atualizarProfiEspec(id, especId);
+    }
+
+    await ProfissionalModel.atualizarUsuario(id, {
+      email: emailProf,
+      senha: senhaProf ? await bcrypt.hash(senhaProf, 10) : undefined,
+    });
+
+    return res.json({ message: "Profissional atualizado com sucesso" });
+  } catch (error) {
+    console.error("Erro ao atualizar profissional:", error);
+    return res.status(500).json({ message: "Erro ao atualizar profissional" });
+  }
+};
+
+export const inativarProfissional = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ message: "ID inválido" });
+
+    await ProfissionalModel.inativarProfissional(id);
+    return res.json({ message: "Profissional inativado com sucesso" });
+  } catch (error) {
+    console.error("Erro ao inativar profissional:", error);
+    return res.status(500).json({ message: "Erro ao inativar profissional" });
+  }
+};
+
 export const listarProfissionais = async (req: Request, res: Response) => {
   try {
     const profissionais = await ProfissionalModel.buscarProfissionais();

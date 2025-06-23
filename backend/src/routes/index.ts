@@ -3,6 +3,8 @@ import { buscarPorCPF } from "../controllers/PessoaController";
 import {
   cadastrar,
   listarProfissionais,
+  atualizarProfissional,
+  inativarProfissional,
 } from "../controllers/ProfissionalController";
 import { listarConselhos } from "../controllers/ConselhoController";
 import { listarEspecialidades } from "../controllers/EspecialidadeController";
@@ -22,5 +24,8 @@ router.get("/conselhos", asyncHandler(listarConselhos));
 
 //url para dar get http://192.168.1.11:3000/especialidades?codespec=90
 router.get("/especialidades", asyncHandler(listarEspecialidades));
+
+router.put("/profissionais/:id", asyncHandler(atualizarProfissional));
+router.delete("/profissionais/:id", asyncHandler(inativarProfissional));
 
 export default router;

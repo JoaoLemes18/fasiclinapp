@@ -1,23 +1,43 @@
 import React, { useState, useEffect } from "react";
-import { Modal, View, Text, TextInput, Button, StyleSheet } from "react-native";
-
-interface Profissional {
-  cod_prof: string;
-  nome_prof: string;
-  tipo_prof: string;
-  cod_espec: string;
-  status_prof: string;
-  cons_prof: string;
-  email_prof: string;
-  motivo_suspensao?: string;
-}
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  Button,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { Profissional } from "@/services/profissionalService";
+import { buscarConselhos, Conselho } from "@/services/conselhoService";
+import { obterIdConselhoPorEspecialidade } from "@/utils/mapaEspecialidade";
+import {
+  buscarEspecialidades,
+  Especialidade,
+} from "@/services/especialidadeService";
 
 interface EditProfissionalModalProps {
   visible: boolean;
   profissional: Profissional | null;
   onClose: () => void;
-  onSave: (updatedProf: Profissional) => void;
+  onSave: (id: number, updatedData: any) => void;
 }
+
+const tipos = [
+  { label: "Administrativo", value: "1" },
+  { label: "Técnico Básico", value: "2" },
+  { label: "Supervisor", value: "3" },
+  { label: "Master", value: "4" },
+];
+
+const statusOptions = [
+  { label: "Ativo", value: "1" },
+  { label: "Inativo", value: "2" },
+  { label: "Suspenso", value: "3" },
+];
 
 const EditProfissionalModal: React.FC<EditProfissionalModalProps> = ({
   visible,
@@ -25,116 +45,227 @@ const EditProfissionalModal: React.FC<EditProfissionalModalProps> = ({
   onClose,
   onSave,
 }) => {
-  const [editedProf, setEditedProf] = useState<Profissional | null>(null);
+  const [tipo, setTipo] = useState("");
+  const [status, setStatus] = useState("");
+  const [email, setEmail] = useState("");
+  const [conselho, setConselho] = useState("");
+  const [especialidade, setEspecialidade] = useState("");
+  const [senha, setSenha] = useState("");
+  const [conselhosFiltrados, setConselhosFiltrados] = useState<Conselho[]>([]);
+  const [conselhos, setConselhos] = useState<Conselho[]>([]);
+  const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
 
   useEffect(() => {
-    setEditedProf(profissional);
+    if (profissional) {
+      setTipo(profissional.TIPOPROFI);
+      setStatus(profissional.STATUSPROFI);
+      setEmail(profissional.LOGUSUARIO || "");
+      setConselho(profissional.IDCONSEPROFI?.toString() || "");
+      setEspecialidade(profissional.IDESPEC?.toString() || "");
+      setSenha("");
+    }
   }, [profissional]);
 
-  if (!editedProf) return null;
+  useEffect(() => {
+    const carregarDados = async () => {
+      const conselhosData = await buscarConselhos();
+      const especialidadesData = await buscarEspecialidades();
+      setConselhos(conselhosData);
+      setEspecialidades(especialidadesData);
+    };
+    carregarDados();
+  }, []);
+
+  useEffect(() => {
+    if (especialidade) {
+      const idConselhoRelacionado = obterIdConselhoPorEspecialidade(
+        Number(especialidade)
+      );
+      if (idConselhoRelacionado) {
+        const filtrado = conselhos.filter(
+          (c) => c.IDCONSEPROFI === idConselhoRelacionado
+        );
+        setConselhosFiltrados(filtrado);
+      } else {
+        setConselhosFiltrados([]);
+      }
+    }
+  }, [especialidade, conselhos]);
+
+  const handleSalvar = () => {
+    if (!profissional) return;
+
+    const payload = {
+      tipoProf: tipo,
+      statusProf: status,
+      emailProf: email,
+      senhaProf: senha,
+    };
+
+    if (tipo !== "1" && tipo !== "4") {
+      Object.assign(payload, {
+        conselhoProf: conselho,
+        codEspec: especialidade,
+      });
+    }
+
+    onSave(profissional.IDPROFISSIO, payload);
+  };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Editar Profissional</Text>
+    <Modal visible={visible} animationType="slide" transparent>
+      <View style={styles.overlay}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={styles.keyboardView}
+        >
+          <View style={styles.container}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+              <Text style={styles.title}>Editar Profissional</Text>
 
-          <Text style={styles.inputLabel}>Nome</Text>
-          <TextInput
-            style={styles.input}
-            value={editedProf.nome_prof}
-            onChangeText={(text) =>
-              setEditedProf({ ...editedProf, nome_prof: text })
-            }
-          />
+              <Text style={styles.label}>Tipo</Text>
+              <View style={styles.toggleGroup}>
+                {tipos.map((t) => (
+                  <TouchableOpacity
+                    key={t.value}
+                    style={[
+                      styles.toggleButton,
+                      tipo === t.value && styles.selectedButton,
+                    ]}
+                    onPress={() => setTipo(t.value)}
+                  >
+                    <Text style={styles.toggleText}>{t.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-          <Text style={styles.inputLabel}>Tipo</Text>
-          <TextInput
-            style={styles.input}
-            value={editedProf.tipo_prof}
-            onChangeText={(text) =>
-              setEditedProf({ ...editedProf, tipo_prof: text })
-            }
-          />
+              <Text style={styles.label}>Status</Text>
+              <View style={styles.toggleGroup}>
+                {statusOptions.map((s) => (
+                  <TouchableOpacity
+                    key={s.value}
+                    style={[
+                      styles.toggleButton,
+                      status === s.value && styles.selectedButton,
+                    ]}
+                    onPress={() => setStatus(s.value)}
+                  >
+                    <Text style={styles.toggleText}>{s.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-          <Text style={styles.inputLabel}>Especialidade</Text>
-          <TextInput
-            style={styles.input}
-            value={editedProf.cod_espec}
-            onChangeText={(text) =>
-              setEditedProf({ ...editedProf, cod_espec: text })
-            }
-          />
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Email do profissional"
+              />
 
-          <Text style={styles.inputLabel}>Status</Text>
-          <TextInput
-            style={styles.input}
-            value={editedProf.status_prof}
-            onChangeText={(text) =>
-              setEditedProf({ ...editedProf, status_prof: text })
-            }
-          />
+              <Text style={styles.label}>Nova Senha</Text>
+              <TextInput
+                style={styles.input}
+                value={senha}
+                onChangeText={setSenha}
+                placeholder="Deixe em branco para manter"
+                secureTextEntry
+              />
 
-          <Text style={styles.inputLabel}>Conselho de Classe</Text>
-          <TextInput
-            style={styles.input}
-            value={editedProf.cons_prof}
-            onChangeText={(text) =>
-              setEditedProf({ ...editedProf, cons_prof: text })
-            }
-          />
+              {tipo !== "1" && tipo !== "4" && (
+                <>
+                  <Text style={styles.label}>Especialidade</Text>
+                  <View style={styles.toggleGroup}>
+                    {especialidades.map((e) => (
+                      <TouchableOpacity
+                        key={e.IDESPEC}
+                        style={[
+                          styles.toggleButton,
+                          especialidade === String(e.IDESPEC) &&
+                            styles.selectedButton,
+                        ]}
+                        onPress={() => setEspecialidade(String(e.IDESPEC))}
+                      >
+                        <Text style={styles.toggleText}>
+                          {e.CODESPEC} - {e.DESCESPEC}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
 
-          <Text style={styles.inputLabel}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={editedProf.email_prof}
-            onChangeText={(text) =>
-              setEditedProf({ ...editedProf, email_prof: text })
-            }
-          />
+                  <Text style={styles.label}>Conselho</Text>
+                  <View style={styles.toggleGroup}>
+                    {conselhosFiltrados.map((c) => (
+                      <TouchableOpacity
+                        key={c.IDCONSEPROFI}
+                        style={[
+                          styles.toggleButton,
+                          conselho === String(c.IDCONSEPROFI) &&
+                            styles.selectedButton,
+                        ]}
+                        onPress={() => setConselho(String(c.IDCONSEPROFI))}
+                      >
+                        <Text style={styles.toggleText}>
+                          {c.ABREVCONS} - {c.DESCRICAO}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </>
+              )}
+            </ScrollView>
 
-          <Text style={styles.inputLabel}>Motivo da Suspensão</Text>
-          <TextInput
-            style={styles.input}
-            value={editedProf.motivo_suspensao || ""}
-            onChangeText={(text) =>
-              setEditedProf({ ...editedProf, motivo_suspensao: text })
-            }
-          />
-
-          <Button
-            title="Salvar"
-            onPress={() => editedProf && onSave(editedProf)}
-          />
-          <Button title="Cancelar" onPress={onClose} color="red" />
-        </View>
+            <View style={styles.footer}>
+              <Button title="Salvar" onPress={handleSalvar} />
+              <View style={{ height: 10 }} />
+              <Button title="Cancelar" color="red" onPress={onClose} />
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  modalOverlay: {
+  overlay: {
     flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
-  modalContainer: {
+  keyboardView: {
+    flex: 1,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  container: {
     width: "90%",
+    height: "90%",
     backgroundColor: "#fff",
-    padding: 20,
     borderRadius: 10,
+    overflow: "hidden",
     elevation: 10,
   },
-  modalTitle: {
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 30,
+  },
+  footer: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderColor: "#eee",
+    backgroundColor: "#fff",
+  },
+  title: {
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 10,
   },
-  inputLabel: {
-    marginTop: 10,
+  label: {
     fontWeight: "bold",
+    marginTop: 10,
   },
   input: {
     borderWidth: 1,
@@ -142,6 +273,23 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 5,
     marginBottom: 10,
+  },
+  toggleGroup: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginVertical: 5,
+  },
+  toggleButton: {
+    backgroundColor: "#6C757D",
+    padding: 8,
+    borderRadius: 12,
+    margin: 5,
+  },
+  selectedButton: {
+    backgroundColor: "#00a32a",
+  },
+  toggleText: {
+    color: "white",
   },
 });
 

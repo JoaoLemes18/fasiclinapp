@@ -22,5 +22,3 @@ export const buscarPorCPF = async (req: Request, res: Response) => {
   }
 };
 
-//url para dar get 
- //http://localhost:3000/pessoas?cpf=...

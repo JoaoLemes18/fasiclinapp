@@ -1,147 +1,119 @@
-import { useEffect, useState } from "react";
-import { FlatList, Text, View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, Alert } from "react-native";
+import { useState } from "react";
+import { useProfissionais } from "@/hooks/useProfissionais";
 import { styles } from "@/styles/List";
-import {
-  listarProfissionais,
-  Profissional,
-} from "@/services/profissionalService";
+
+import ProfissionalCard from "@/components/ProfissionalCard";
 import { getCodeSpecByIdEspec } from "@/utils/especialidade";
 import { gerarProfissionaisPdf } from "@/lib/gerarProfissionaisPdf";
 import { FilterHeader } from "@/components/FilterHeader";
+import EditProfissionalModal from "@/components/EditModal";
+import { FlatList } from "react-native-gesture-handler";
 
 const tipoProfissionalLabel = (codigo: string) => {
-  switch (codigo) {
-    case "1":
-      return "Administrativo";
-    case "2":
-      return "Técnico Básico";
-    case "3":
-      return "Supervisor";
-    case "4":
-      return "Master";
-    default:
-      return "Desconhecido";
-  }
+  const tipos: Record<string, string> = {
+    "1": "Administrativo",
+    "2": "Técnico Básico",
+    "3": "Supervisor",
+    "4": "Master",
+  };
+  return tipos[codigo] ?? "Desconhecido";
 };
 
 const statusProfissionalLabel = (codigo: string) => {
-  switch (codigo) {
-    case "1":
-      return "Ativo";
-    case "2":
-      return "Inativo";
-    case "3":
-      return "Suspenso";
-    default:
-      return "Desconhecido";
-  }
+  const status: Record<string, string> = {
+    "1": "Ativo",
+    "2": "Inativo",
+    "3": "Suspenso",
+  };
+  return status[codigo] ?? "Desconhecido";
 };
 
 export default function List() {
-  const [profissionais, setProfissionais] = useState<Profissional[]>([]);
-  const [carregando, setCarregando] = useState(true);
-  const [mostrarFiltros, setMostrarFiltros] = useState(true);
-
-  const [buscaNome, setBuscaNome] = useState("");
-  const [buscaTipo, setBuscaTipo] = useState("");
-  const [buscaStatus, setBuscaStatus] = useState("");
-  const [buscaConselho, setBuscaConselho] = useState("");
-  const [buscaEspecialidade, setBuscaEspecialidade] = useState("");
-
-  const carregar = async () => {
-    setCarregando(true);
-    const dados = await listarProfissionais();
-    setProfissionais(dados);
-    setCarregando(false);
-  };
-
-  useEffect(() => {
-    carregar();
-  }, []);
-
-  const limparFiltros = () => {
-    setBuscaNome("");
-    setBuscaTipo("");
-    setBuscaStatus("");
-    setBuscaConselho("");
-    setBuscaEspecialidade("");
-  };
-
-  const profissionaisFiltrados = profissionais.filter((p) => {
-    const nomeOk = p.NOMEPESSOA?.toLowerCase().includes(
-      buscaNome.toLowerCase()
-    );
-    const tipoOk = buscaTipo ? p.TIPOPROFI === buscaTipo : true;
-    const statusOk = buscaStatus ? p.STATUSPROFI === buscaStatus : true;
-    const conselhoOk = buscaConselho
-      ? p.ABREVCONS?.toLowerCase().includes(buscaConselho.toLowerCase())
-      : true;
-    const especOk = buscaEspecialidade
-      ? p.DESCESPEC?.toLowerCase().includes(buscaEspecialidade.toLowerCase())
-      : true;
-    return nomeOk && tipoOk && statusOk && conselhoOk && especOk;
-  });
+  const [mostrarFiltros, setMostrarFiltros] = useState(false); // ✅ estado para toggle
+  const {
+    carregando,
+    profissionaisFiltrados,
+    filtros,
+    setFiltros,
+    limparFiltros,
+    carregar,
+    modalAberto,
+    profissionalSelecionado,
+    abrirModal,
+    fecharModal,
+    salvarEdicao,
+    inativar,
+  } = useProfissionais();
 
   if (carregando) {
     return <ActivityIndicator size="large" style={{ marginTop: 40 }} />;
   }
 
-  // Wrap header in white container so button stays clear and fixed
-  const ListHeader = () => (
-    <View style={styles.headerContainer}>
-      <FilterHeader
-        mostrar={mostrarFiltros}
-        onToggle={() => setMostrarFiltros((prev) => !prev)}
-        buscaNome={buscaNome}
-        onChangeNome={setBuscaNome}
-        buscaTipo={buscaTipo}
-        onChangeTipo={setBuscaTipo}
-        buscaStatus={buscaStatus}
-        onChangeStatus={setBuscaStatus}
-        buscaConselho={buscaConselho}
-        onChangeConselho={setBuscaConselho}
-        buscaEspecialidade={buscaEspecialidade}
-        onChangeEspecialidade={setBuscaEspecialidade}
-        onLimpar={limparFiltros}
-        onRecarregar={carregar}
-        onGerarPdf={() =>
-          gerarProfissionaisPdf({
-            profissionais: profissionaisFiltrados,
-            getCodeSpecByIdEspec,
-            tipoProfissionalLabel,
-            statusProfissionalLabel,
-          })
-        }
-      />
-    </View>
-  );
-
   return (
-    <View>
+    <View style={styles.container}>
       <FlatList
         data={profissionaisFiltrados}
         keyExtractor={(item) => item.IDPROFISSIO.toString()}
-        ListHeaderComponent={ListHeader}
-        stickyHeaderIndices={[0]}
-        renderItem={({ item }) => (
-          <View style={styles.itemContainer}>
-            <Text style={styles.itemTitulo}>{item.NOMEPESSOA}</Text>
-            <Text>Tipo: {tipoProfissionalLabel(item.TIPOPROFI)}</Text>
-            <Text>Status: {statusProfissionalLabel(item.STATUSPROFI)}</Text>
-            <Text>
-              Conselho: {item.ABREVCONS ?? "N/A"} - {item.DESCRICAO ?? "N/A"}
-            </Text>
-            <Text>
-              Especialidade: {getCodeSpecByIdEspec(item.IDESPEC)} -{" "}
-              {item.DESCESPEC ?? "N/A"}
-            </Text>
+        ListHeaderComponent={
+          <View style={styles.headerContainer}>
+            <FilterHeader
+              mostrar={mostrarFiltros}
+              onToggle={() => setMostrarFiltros((prev) => !prev)} // ✅ toggle funcional
+              buscaNome={filtros.nome}
+              onChangeNome={(v) => setFiltros((f) => ({ ...f, nome: v }))}
+              buscaTipo={filtros.tipo}
+              onChangeTipo={(v) => setFiltros((f) => ({ ...f, tipo: v }))}
+              buscaStatus={filtros.status}
+              onChangeStatus={(v) => setFiltros((f) => ({ ...f, status: v }))}
+              buscaEspecialidade={filtros.especialidade}
+              onChangeEspecialidade={(v) =>
+                setFiltros((f) => ({ ...f, especialidade: v }))
+              }
+              onLimpar={limparFiltros}
+              onRecarregar={carregar}
+              onGerarPdf={() =>
+                gerarProfissionaisPdf({
+                  profissionais: profissionaisFiltrados,
+                  getCodeSpecByIdEspec,
+                  tipoProfissionalLabel,
+                  statusProfissionalLabel,
+                })
+              }
+            />
           </View>
-        )}
-        ListEmptyComponent={
-          <Text style={{ textAlign: "center", marginTop: 20 }}>
-            Nenhum profissional encontrado.
-          </Text>
         }
+        renderItem={({ item }) => (
+          <ProfissionalCard
+            profissional={item}
+            onEditar={() => abrirModal(item)}
+            onInativar={() => {
+              Alert.alert(
+                "Inativar Profissional",
+                "Deseja inativar este profissional?",
+                [
+                  { text: "Cancelar", style: "cancel" },
+                  {
+                    text: "Inativar",
+                    style: "destructive",
+                    onPress: async () => {
+                      const r = await inativar(item.IDPROFISSIO);
+                      if (!r.sucesso) alert(r.mensagem);
+                    },
+                  },
+                ]
+              );
+            }}
+          />
+        )}
+        contentContainerStyle={styles.list}
+      />
+
+      <EditProfissionalModal
+        visible={modalAberto}
+        profissional={profissionalSelecionado}
+        onClose={fecharModal}
+        onSave={salvarEdicao}
       />
     </View>
   );

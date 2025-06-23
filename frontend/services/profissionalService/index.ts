@@ -3,15 +3,17 @@ import { api } from "..";
 
 export interface ProfissionalCadastro {
   idPessoa: number;
-  tipoProf: string; // ex: "1"
+  tipoProf: string;
   statusProf: string;
-  codEspec?: string; // agora opcionais
-  conselhoProf?: string; // idem
+  codEspec?: string;
+  conselhoProf?: string;
   emailProf: string;
   senhaProf: string;
 }
 
 export interface Profissional {
+  ID_PESSOAFIS: number;
+  LOGUSUARIO: string;
   DESCRICAO: string;
   ABREVCONS: string;
   IDPROFISSIO: number;
@@ -35,6 +37,69 @@ export async function listarProfissionais(): Promise<Profissional[]> {
   }
 }
 
+export async function atualizarProfissional(
+  id: number,
+  data: ProfissionalCadastro
+): Promise<{ sucesso: boolean; mensagem?: string }> {
+  try {
+    const tipo = Number(data.tipoProf);
+    const status = Number(data.statusProf);
+
+    if (!data.emailProf || !tipo || !status || !data.idPessoa) {
+      return { sucesso: false, mensagem: "Campos obrigatórios ausentes." };
+    }
+
+    const isSemConselho = tipo === 1 || tipo === 4;
+
+    const payload: any = {
+      idPessoa: data.idPessoa,
+      tipoProf: tipo.toString(),
+      statusProf: status.toString(),
+      emailProf: data.emailProf,
+      senhaProf: data.senhaProf,
+    };
+
+    if (!isSemConselho) {
+      if (!data.conselhoProf || !data.codEspec) {
+        return {
+          sucesso: false,
+          mensagem:
+            "Especialidade e conselho são obrigatórios para esse tipo de profissional.",
+        };
+      }
+
+      Object.assign(payload, {
+        conselhoProf: data.conselhoProf,
+        codEspec: data.codEspec,
+      });
+    }
+
+    await axios.put(`${api}/profissionais/${id}`, payload);
+    return { sucesso: true };
+  } catch (error: any) {
+    console.error("Erro ao atualizar profissional:", error);
+    return {
+      sucesso: false,
+      mensagem: "Erro ao atualizar profissional",
+    };
+  }
+}
+
+export async function inativarProfissional(
+  id: number
+): Promise<{ sucesso: boolean; mensagem?: string }> {
+  try {
+    await axios.delete(`${api}/profissionais/${id}`);
+    return { sucesso: true };
+  } catch (error: any) {
+    console.error("Erro ao inativar profissional:", error);
+    return {
+      sucesso: false,
+      mensagem: "Erro ao inativar profissional",
+    };
+  }
+}
+
 export async function cadastrarProfissional(
   data: ProfissionalCadastro
 ): Promise<boolean> {
@@ -49,7 +114,6 @@ export async function cadastrarProfissional(
       senhaProf: data.senhaProf,
     };
 
-    // Somente adiciona se tipo exigir
     if (tipo !== 1 && tipo !== 4) {
       Object.assign(payload, {
         conselhoProf: data.conselhoProf,

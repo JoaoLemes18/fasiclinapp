@@ -2,15 +2,14 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
     padding: 20,
     backgroundColor: "white",
   },
   logo: {
-    width: 320, // Defina o tamanho da logo
+    width: 320,
     height: 150,
-    alignSelf: "center", // Centraliza a logo
-    marginBottom: 20, // Espaço abaixo da logo
+    alignSelf: "center",
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
@@ -36,29 +35,29 @@ export const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: "#6C757D",
-    paddingVertical: 12, // Ajuste no espaçamento vertical
-    paddingHorizontal: 25, // Ajuste no espaçamento horizontal
-    borderRadius: 25, // Borda mais arredondada
-    marginBottom: 15, // Margem inferior maior
-    marginRight: 15, // Margem direita maior para mais espaçamento
-    borderWidth: 1, // Adicionando uma borda sutil
-    borderColor: "#6C757D", // Cor da borda combinando com o fundo
-    alignItems: "center", // Alinha o conteúdo centralizado
-    justifyContent: "center", // Garante que o texto fique no centro
-    shadowColor: "#000", // Sombra sutil para dar profundidade
-    shadowOffset: { width: 0, height: 4 }, // Deslocamento da sombra
-    shadowOpacity: 0.1, // Opacidade da sombra
-    shadowRadius: 6, // Raio da sombra
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    marginBottom: 15,
+    marginRight: 15,
+    borderWidth: 1,
+    borderColor: "#6C757D",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
   selectedButton: {
-    backgroundColor: "#00a32a", // Cor quando o botão for selecionado
-    borderColor: "#00a32a", // Borda na cor de seleção
-    shadowColor: "#00a32a", // Sombra com a mesma cor
-    shadowOpacity: 0.2, // Aumentando a opacidade da sombra quando selecionado
+    backgroundColor: "#00a32a",
+    borderColor: "#00a32a",
+    shadowColor: "#00a32a",
+    shadowOpacity: 0.2,
   },
   buttonText: {
-    color: "#fff", // Cor do texto branca para contraste
-    fontSize: 16, // Tamanho da fonte
-    fontWeight: "bold", // Peso da fonte mais destacado
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

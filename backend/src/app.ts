@@ -1,11 +1,10 @@
 import express from "express";
-import cors from "cors"; // ✅ importe o cors
-
+import cors from "cors"; 
 import router from "./routes";
 
 const app = express();
 
-app.use(cors()); // ✅ habilita CORS para todas as rotas
+app.use(cors()); 
 app.use(express.json());
 app.use(router);
 

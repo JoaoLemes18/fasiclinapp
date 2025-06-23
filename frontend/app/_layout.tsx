@@ -1,15 +1,15 @@
 import React from "react";
-import { View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Slot } from "expo-router";
-import { ProfissionalProvider } from "../context/ProfissionalContext"; // ajuste o caminho conforme sua pasta
+import { ProfissionalProvider } from "../context/ProfissionalContext";
 
 const Layout = () => {
   return (
-    <ProfissionalProvider>
-      <View style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ProfissionalProvider>
         <Slot />
-      </View>
-    </ProfissionalProvider>
+      </ProfissionalProvider>
+    </GestureHandlerRootView>
   );
 };
 
