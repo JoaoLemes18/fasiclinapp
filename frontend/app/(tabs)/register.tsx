@@ -58,6 +58,14 @@ const statusProfissionais = [
 
 const Register = () => {
   const { adicionarProfissional } = useProfissional();
+  const [logs, setLogs] = useState<string[]>([]);
+
+  const addLog = (msg: string) => {
+    setLogs((prev) => [
+      ...prev,
+      `🕓 ${new Date().toLocaleTimeString()} - ${msg}`,
+    ]);
+  };
 
   const [formState, setFormState] = useState<FormState>({
     cpf: "",
@@ -426,6 +434,32 @@ const Register = () => {
           onPress={handleSubmit}
           content="Cadastrar Profissional"
         />
+
+        {!__DEV__ && (
+          <View
+            style={{
+              marginTop: 30,
+              backgroundColor: "#111",
+              padding: 10,
+              borderRadius: 8,
+              maxHeight: 200,
+              width: "100%",
+            }}
+          >
+            <Text
+              style={{ color: "lime", fontWeight: "bold", marginBottom: 5 }}
+            >
+              📋 Logs da Tela:
+            </Text>
+            <ScrollView>
+              {logs.map((log, index) => (
+                <Text key={index} style={{ color: "lime", fontSize: 12 }}>
+                  {log}
+                </Text>
+              ))}
+            </ScrollView>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
