@@ -105,6 +105,13 @@ export class ProfissionalModel {
     );
   }
 
+  static async reativarProfissional(id_profissio: number) {
+    await pool.query(
+      `UPDATE PROFISSIONAL SET STATUSPROFI = '1' WHERE IDPROFISSIO = ?`,
+      [id_profissio]
+    );
+  }
+
   static async buscarProfissionais() {
     const [rows]: any = await pool.query(`
     SELECT 

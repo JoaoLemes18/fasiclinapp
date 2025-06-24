@@ -5,6 +5,7 @@ import {
   listarProfissionais,
   atualizarProfissional,
   inativarProfissional,
+  reativarProfissional,
 } from "../controllers/ProfissionalController";
 import { listarConselhos } from "../controllers/ConselhoController";
 import { listarEspecialidades } from "../controllers/EspecialidadeController";
@@ -26,6 +27,8 @@ router.get("/conselhos", asyncHandler(listarConselhos));
 router.get("/especialidades", asyncHandler(listarEspecialidades));
 
 router.put("/profissionais/:id", asyncHandler(atualizarProfissional));
+router.patch("/profissionais/:id/reativar", asyncHandler(reativarProfissional));
+
 router.delete("/profissionais/:id", asyncHandler(inativarProfissional));
 
 export default router;

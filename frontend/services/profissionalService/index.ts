@@ -36,6 +36,20 @@ export async function listarProfissionais(): Promise<Profissional[]> {
     return [];
   }
 }
+export async function reativarProfissional(
+  id: number
+): Promise<{ sucesso: boolean; mensagem?: string }> {
+  try {
+    await axios.patch(`${api}/profissionais/${id}/reativar`);
+    return { sucesso: true };
+  } catch (error: any) {
+    console.error("Erro ao reativar profissional:", error);
+    return {
+      sucesso: false,
+      mensagem: "Erro ao reativar profissional",
+    };
+  }
+}
 
 export async function atualizarProfissional(
   id: number,

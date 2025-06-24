@@ -27,12 +27,14 @@ type Props = {
   profissional: Profissional;
   onEditar: () => void;
   onInativar: () => void;
+  onReativar?: () => void;
 };
 
 const ProfissionalCard: React.FC<Props> = ({
   profissional,
   onEditar,
   onInativar,
+  onReativar, // <- ❗ adicionado aqui
 }) => {
   const isInativo = profissional.STATUSPROFI === "2";
 
@@ -40,7 +42,7 @@ const ProfissionalCard: React.FC<Props> = ({
     <View
       style={[
         styles.itemContainer,
-        profissional.STATUSPROFI === "2" && styles.cardInativo,
+        isInativo && styles.cardInativo,
         profissional.STATUSPROFI === "3" && styles.cardSuspenso,
       ]}
     >
@@ -75,6 +77,13 @@ const ProfissionalCard: React.FC<Props> = ({
             <Text style={styles.textoExcluir}>Inativar</Text>
           </TouchableOpacity>
         )}
+
+        {isInativo && onReativar && (
+          <TouchableOpacity onPress={onReativar} style={styles.botao}>
+            <Ionicons name="refresh" size={20} color="#007bff" />
+            <Text style={styles.textoReativar}>Reativar</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -92,9 +101,6 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  inativo: {
-    opacity: 0.4,
-  },
   topo: {
     flexDirection: "row",
     alignItems: "center",
@@ -108,13 +114,12 @@ const styles = StyleSheet.create({
   },
   cardInativo: {
     opacity: 0.5,
-    backgroundColor: "#f8d7da", // vermelho claro para Inativo
+    backgroundColor: "#f8d7da",
   },
   cardSuspenso: {
     opacity: 0.8,
-    backgroundColor: "#fff3cd", // amarelo claro para Suspenso
+    backgroundColor: "#fff3cd",
   },
-
   botoesContainer: {
     flexDirection: "row",
     gap: 20,
@@ -131,6 +136,10 @@ const styles = StyleSheet.create({
   textoExcluir: {
     marginLeft: 5,
     color: "red",
+  },
+  textoReativar: {
+    marginLeft: 5,
+    color: "#007bff",
   },
 });
 

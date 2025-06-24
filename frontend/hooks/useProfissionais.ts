@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   listarProfissionais,
   atualizarProfissional,
+  reativarProfissional,
   inativarProfissional, // <- alterado aqui
   Profissional,
   ProfissionalCadastro,
@@ -99,6 +100,13 @@ export function useProfissionais() {
     }
     return resultado;
   };
+  const reativar = async (id: number) => {
+    const resultado = await reativarProfissional(id);
+    if (resultado.sucesso) {
+      await carregar();
+    }
+    return resultado;
+  };
 
   // Resetar filtros
   const limparFiltros = () =>
@@ -116,6 +124,7 @@ export function useProfissionais() {
     abrirModal,
     fecharModal,
     salvarEdicao,
-    inativar, // <- função atualizada
+    inativar,
+    reativar,
   };
 }

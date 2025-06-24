@@ -30,7 +30,7 @@ const statusProfissionalLabel = (codigo: string) => {
 };
 
 export default function List() {
-  const [mostrarFiltros, setMostrarFiltros] = useState(false); // ✅ estado para toggle
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const {
     carregando,
     profissionaisFiltrados,
@@ -44,6 +44,7 @@ export default function List() {
     fecharModal,
     salvarEdicao,
     inativar,
+    reativar,
   } = useProfissionais();
 
   if (carregando) {
@@ -98,6 +99,22 @@ export default function List() {
                     style: "destructive",
                     onPress: async () => {
                       const r = await inativar(item.IDPROFISSIO);
+                      if (!r.sucesso) alert(r.mensagem);
+                    },
+                  },
+                ]
+              );
+            }}
+            onReativar={() => {
+              Alert.alert(
+                "Reativar Profissional",
+                "Deseja reativar este profissional?",
+                [
+                  { text: "Cancelar", style: "cancel" },
+                  {
+                    text: "Reativar",
+                    onPress: async () => {
+                      const r = await reativar(item.IDPROFISSIO);
                       if (!r.sucesso) alert(r.mensagem);
                     },
                   },

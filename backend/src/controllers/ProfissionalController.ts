@@ -157,6 +157,19 @@ export const inativarProfissional = async (req: Request, res: Response) => {
   }
 };
 
+export const reativarProfissional = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ message: "ID inválido" });
+
+    await ProfissionalModel.reativarProfissional(id);
+    return res.json({ message: "Profissional reativado com sucesso" });
+  } catch (error) {
+    console.error("Erro ao reativar profissional:", error);
+    return res.status(500).json({ message: "Erro ao reativar profissional" });
+  }
+};
+
 export const listarProfissionais = async (req: Request, res: Response) => {
   try {
     const profissionais = await ProfissionalModel.buscarProfissionais();
