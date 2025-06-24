@@ -60,4 +60,45 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  cardPessoa: {
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#e6e6e6",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+
+  cardTitulo: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#00a32a",
+    marginBottom: 10,
+  },
+
+  linhaHorizontal: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+    gap: 4, // se seu React Native suportar; senão use marginRight
+  },
+
+  labelEncontrada: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#00a32a",
+    marginLeft: 8,
+  },
+
+  valor: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#333",
+    marginLeft: 4,
+  },
 });

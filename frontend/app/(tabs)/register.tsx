@@ -17,6 +17,7 @@ import {
   buscarEspecialidades,
   Especialidade,
 } from "@/services/especialidadeService";
+import { Ionicons, Feather } from "@expo/vector-icons";
 
 import { deveMostrarCamposEspeciais } from "@/utils/visibilidadeCampos";
 import { useProfissional } from "@/context/ProfissionalContext";
@@ -249,6 +250,13 @@ const Register = () => {
       setLoadingCadastro(false);
     }
   };
+  const formatarData = (dataISO: string) => {
+    const data = new Date(dataISO);
+    const dia = String(data.getDate()).padStart(2, "0");
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
+    const ano = data.getFullYear();
+    return `${dia}/${mes}/${ano}`;
+  };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -297,17 +305,42 @@ const Register = () => {
 
         {/* Dados da pessoa encontrada */}
         {pessoaEncontrada && (
-          <View style={{ marginBottom: 15 }}>
-            <Text style={{ fontWeight: "bold", marginBottom: 5 }}>
-              Pessoa encontrada:
-            </Text>
-            <Text>Nome: {pessoaEncontrada.nome || pessoaEncontrada.NOME}</Text>
-            <Text>CPF: {pessoaEncontrada.cpf || pessoaEncontrada.CPF}</Text>
-            <Text>
-              Data Nasc:{" "}
-              {pessoaEncontrada.dataNascimento || pessoaEncontrada.DATA_NASC}
-            </Text>
-            <Text>Sexo: {pessoaEncontrada.sexo || pessoaEncontrada.SEXO}</Text>
+          <View style={styles.cardPessoa}>
+            <Text style={styles.cardTitulo}>Pessoa encontrada</Text>
+
+            <View style={styles.linhaHorizontal}>
+              <Ionicons name="person-outline" size={18} color="#00a32a" />
+              <Text style={styles.labelEncontrada}>Nome:</Text>
+              <Text style={styles.valor}>
+                {pessoaEncontrada.nome || pessoaEncontrada.NOME}
+              </Text>
+            </View>
+
+            <View style={styles.linhaHorizontal}>
+              <Feather name="hash" size={18} color="#00a32a" />
+              <Text style={styles.labelEncontrada}>CPF:</Text>
+              <Text style={styles.valor}>
+                {pessoaEncontrada.cpf || pessoaEncontrada.CPF}
+              </Text>
+            </View>
+
+            <View style={styles.linhaHorizontal}>
+              <Ionicons name="calendar-outline" size={18} color="#00a32a" />
+              <Text style={styles.labelEncontrada}>Data Nasc:</Text>
+              <Text style={styles.valor}>
+                {formatarData(
+                  pessoaEncontrada.dataNascimento || pessoaEncontrada.DATA_NASC
+                )}
+              </Text>
+            </View>
+
+            <View style={styles.linhaHorizontal}>
+              <Ionicons name="male-female-outline" size={18} color="#00a32a" />
+              <Text style={styles.labelEncontrada}>Sexo:</Text>
+              <Text style={styles.valor}>
+                {pessoaEncontrada.sexo || pessoaEncontrada.SEXO}
+              </Text>
+            </View>
           </View>
         )}
 
