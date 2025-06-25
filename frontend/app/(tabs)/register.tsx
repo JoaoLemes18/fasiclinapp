@@ -9,22 +9,25 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
+import { Ionicons, Feather } from "@expo/vector-icons";
 
-import { styles } from "@/styles/Register";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
+
+import { styles } from "@/styles/Register";
+
+import { useProfissional } from "@/context/ProfissionalContext";
+
+import { buscarPessoaPorCPF } from "@/services/pessoaService";
+import { buscarConselhos, Conselho } from "@/services/conselhoService";
 import {
   buscarEspecialidades,
   Especialidade,
 } from "@/services/especialidadeService";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { cadastrarProfissional } from "@/services/profissionalService";
 
 import { deveMostrarCamposEspeciais } from "@/utils/visibilidadeCampos";
-import { useProfissional } from "@/context/ProfissionalContext";
 import { obterIdConselhoPorEspecialidade } from "@/utils/mapaEspecialidade";
-import { buscarPessoaPorCPF } from "@/services/pessoaService";
-import { buscarConselhos, Conselho } from "@/services/conselhoService";
-import { cadastrarProfissional } from "@/services/profissionalService";
 
 type Pessoa = {
   idPessoa: number;
@@ -96,14 +99,19 @@ const Register = () => {
   ) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
 
-    // Se mudou a especialidade, filtre os conselhos
-    if (field === "cod_espec" && typeof value === "string") {
-      filtrarConselhosPorEspecialidade(Number(value));
-      setFormState((prev) => ({ ...prev, conselho_prof: null }));
+    if (field === "tipo_prof") {
+      tratarMudancaTipoProf(value as number);
     }
 
-    // Se o tipo for Administrativo ou Master, zere os campos de especialidade/conselho
-    if (field === "tipo_prof" && (value === 1 || value === 4)) {
+    if (field === "cod_espec") {
+      tratarMudancaEspecialidade(value as string);
+    }
+  };
+
+  const tratarMudancaTipoProf = (tipo: number) => {
+    const deveLimpar = tipo === 1 || tipo === 4;
+
+    if (deveLimpar) {
       setFormState((prev) => ({
         ...prev,
         cod_espec: null,
@@ -113,20 +121,28 @@ const Register = () => {
     }
   };
 
-  useEffect(() => {
-    const carregarConselhos = async () => {
-      const data = await buscarConselhos();
-      setConselhos(data);
-    };
-    carregarConselhos();
-  }, []);
+  const tratarMudancaEspecialidade = (id: string) => {
+    filtrarConselhosPorEspecialidade(Number(id));
+    setFormState((prev) => ({ ...prev, conselho_prof: null }));
+  };
 
   useEffect(() => {
-    const carregarEspecialidades = async () => {
-      const data = await buscarEspecialidades();
-      setEspecialidades(data);
+    const carregarFiltros = async () => {
+      const [conselhosData, especData] = await Promise.all([
+        buscarConselhos(),
+        buscarEspecialidades(),
+      ]);
+
+      // Ordenar especialidades por CODESPEC numericamente
+      const especialidadesOrdenadas = especData.sort(
+        (a, b) => Number(a.CODESPEC) - Number(b.CODESPEC)
+      );
+
+      setConselhos(conselhosData);
+      setEspecialidades(especialidadesOrdenadas);
     };
-    carregarEspecialidades();
+
+    carregarFiltros();
   }, []);
 
   const buscarPessoa = async () => {
@@ -168,29 +184,50 @@ const Register = () => {
   };
 
   const handleSubmit = async () => {
+    if (!pessoaEncontrada) {
+      Alert.alert("Erro", "Busque a pessoa pelo CPF antes de cadastrar.");
+      return;
+    }
+
+    if (!formularioEhValido()) return;
+
+    const payload = construirPayload();
+
+    setLoadingCadastro(true);
+
+    try {
+      const sucesso = await cadastrarProfissional(payload);
+
+      if (sucesso) {
+        adicionarProfissional(payload);
+        Alert.alert("Sucesso", "Profissional cadastrado com sucesso!");
+        resetarFormulario();
+      } else {
+        Alert.alert("Erro", "Erro ao cadastrar profissional.");
+      }
+    } catch (error) {
+      console.error("Erro no cadastro:", error);
+      Alert.alert("Erro", "Erro ao cadastrar profissional. Tente novamente.");
+    } finally {
+      setLoadingCadastro(false);
+    }
+  };
+
+  const formularioEhValido = (): boolean => {
     const {
       tipo_prof,
       status_prof,
-      cod_espec,
-      conselho_prof,
       email_prof,
       senha_prof,
+      cod_espec,
+      conselho_prof,
     } = formState;
-
-    if (!pessoaEncontrada) {
-      Alert.alert(
-        "Erro",
-        "Busque a pessoa pelo CPF antes de cadastrar o profissional."
-      );
-      return;
-    }
 
     if (!tipo_prof || !status_prof || !email_prof || !senha_prof) {
       Alert.alert("Erro", "Preencha todos os campos obrigatórios.");
-      return;
+      return false;
     }
 
-    // Apenas Técnico Básico ou Supervisor exigem especialidade/conselho
     const exigeEspecialidade = tipo_prof !== 1 && tipo_prof !== 4;
 
     if (exigeEspecialidade && (!cod_espec || !conselho_prof)) {
@@ -198,58 +235,51 @@ const Register = () => {
         "Erro",
         "Especialidade e conselho são obrigatórios para esse tipo de profissional."
       );
-      return;
+      return false;
     }
 
-    setLoadingCadastro(true);
-
-    try {
-      const exigeEspec = tipo_prof !== 1 && tipo_prof !== 4;
-
-      const profissionalData = {
-        idPessoa: pessoaEncontrada.idPessoa,
-        tipoProf: String(tipo_prof),
-        statusProf: String(status_prof),
-        emailProf: email_prof,
-        senhaProf: senha_prof,
-        ...(exigeEspec && {
-          conselhoProf: String(conselho_prof),
-          codEspec: String(cod_espec),
-        }),
-      };
-
-      console.log("📦 Dados enviados ao backend:");
-      console.log(JSON.stringify(profissionalData, null, 2));
-      console.log("👤 Pessoa encontrada:", pessoaEncontrada);
-
-      const sucesso = await cadastrarProfissional(profissionalData);
-
-      if (sucesso) {
-        adicionarProfissional(profissionalData);
-        Alert.alert("Sucesso", "Profissional cadastrado com sucesso!");
-        setFormState({
-          cpf: "",
-          tipo_prof: null,
-          status_prof: null,
-          cod_espec: null,
-          conselho_prof: null,
-          email_prof: "",
-          senha_prof: "",
-        });
-
-        setPessoaEncontrada(null);
-        setCamposHabilitados(false);
-        setConselhosFiltrados([]);
-      } else {
-        Alert.alert("Erro", "Erro ao cadastrar profissional.");
-      }
-    } catch (error) {
-      Alert.alert("Erro", "Erro ao cadastrar profissional. Tente novamente.");
-      console.error(error);
-    } finally {
-      setLoadingCadastro(false);
-    }
+    return true;
   };
+
+  const construirPayload = () => {
+    const {
+      tipo_prof,
+      status_prof,
+      email_prof,
+      senha_prof,
+      cod_espec,
+      conselho_prof,
+    } = formState;
+    const exigeEspec = tipo_prof !== 1 && tipo_prof !== 4;
+
+    return {
+      idPessoa: pessoaEncontrada!.idPessoa,
+      tipoProf: String(tipo_prof),
+      statusProf: String(status_prof),
+      emailProf: email_prof,
+      senhaProf: senha_prof,
+      ...(exigeEspec && {
+        conselhoProf: String(conselho_prof),
+        codEspec: String(cod_espec),
+      }),
+    };
+  };
+
+  const resetarFormulario = () => {
+    setFormState({
+      cpf: "",
+      tipo_prof: null,
+      status_prof: null,
+      cod_espec: null,
+      conselho_prof: null,
+      email_prof: "",
+      senha_prof: "",
+    });
+    setPessoaEncontrada(null);
+    setCamposHabilitados(false);
+    setConselhosFiltrados([]);
+  };
+
   const formatarData = (dataISO: string) => {
     const data = new Date(dataISO);
     const dia = String(data.getDate()).padStart(2, "0");
@@ -266,7 +296,6 @@ const Register = () => {
           style={styles.logo}
         />
 
-        {/* CPF e botão buscar */}
         <View
           style={{
             flexDirection: "row",
@@ -303,7 +332,6 @@ const Register = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Dados da pessoa encontrada */}
         {pessoaEncontrada && (
           <View style={styles.cardPessoa}>
             <Text style={styles.cardTitulo}>Pessoa encontrada</Text>
@@ -344,7 +372,6 @@ const Register = () => {
           </View>
         )}
 
-        {/* Campos do profissional */}
         <Input
           label="E-mail"
           placeholder="email@exemplo.com"
