@@ -170,7 +170,7 @@ Este projeto está licenciado sob a Licença MIT. Consulte o arquivo [LICENSE](L
 
 
 
-## 📌 Rodapé
+## 📌 Créditos
 
 Projeto desenvolvido como parte dos estudos de Análise e Desenvolvimento de Sistemas – FASIPE.  
 Todos os direitos reservados © 2025 – **João Lemes**.  
