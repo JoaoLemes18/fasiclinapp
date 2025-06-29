@@ -21,6 +21,7 @@ Este projeto é um sistema de cadastro de profissionais, permitindo gerenciar in
 - Edição e exclusão (inativação) de profissionais
 - Reativação de profissionais inativados
 - Filtro de profissionais por especialidade
+- Relatório por PDF profissionais por especialidade, nome, tipo e status
 - Busca de pessoas físicas por CPF
 - Autenticação de usuário via CPF e senha 
 - Associação dinâmica de especialidade e conselho conforme o tipo de profissional
