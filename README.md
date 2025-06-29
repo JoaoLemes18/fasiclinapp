@@ -1,4 +1,4 @@
-# 📋 Sistema de Cadastro de Profissionais
+v# 📋 Sistema de Cadastro de Profissionais
 
 Este projeto é um sistema de cadastro de profissionais, permitindo gerenciar informações de pessoas físicas, especialidades e conselhos de forma prática e integrada.
 
@@ -71,7 +71,7 @@ npx expo start
 ## 👤 Autor
 
 - **João Guilherme Lemes**
-- **RA:** seu RA aqui
+- **RA:** 91660
 - **LinkedIn:** (https://www.linkedin.com/in/joaolemes18/) 
 ---
 
