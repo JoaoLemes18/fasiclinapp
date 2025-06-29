@@ -36,18 +36,16 @@ Este projeto é um sistema de cadastro de profissionais, permitindo gerenciar in
 fasiclinapp/
 │
 ├── backend/
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── database/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   ├── utils/
-│   │   ├── app.ts
-│   │   └── server.ts
-│   ├── package-lock.json
-│   ├── package.json
-│   └── tsconfig.json
+   ├── src/
+   ├── controllers/
+   ├── database/
+   ├── models/
+   ├── routes/
+   ├── services/
+   ├── utils/
+   ├── app.ts
+   └── server.ts
+
 │
 └── frontend/
     ├── app/
