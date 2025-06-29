@@ -35,7 +35,7 @@ Este projeto é um sistema de cadastro de profissionais, permitindo gerenciar in
 ```
 fasiclinapp/
 │
-├── backend/
+└── backend/
    ├── src/
    ├── controllers/
    ├── database/
@@ -71,7 +71,7 @@ fasiclinapp/
 
 - Node.js instalado
 - MySQL configurado e rodando localmente
-- npm ou yarn instalados
+- npm instalado
 
 
 ### Backend
