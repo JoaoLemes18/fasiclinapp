@@ -7,7 +7,7 @@ Este projeto é um sistema de cadastro de profissionais, permitindo gerenciar in
 - **Backend:** Node.js + Express + MySQL  
 - **Frontend:** React Native + TypeScript + Expo  
 - **Banco de Dados:** MySQL
-- - **Ambiente de Deploy:** Ubuntu Server com Systemd
+- **Ambiente de Deploy:** Ubuntu Server com Systemd
 - **Outras libs:** bcrypt, axios, expo-router, react-hooks, entre outras
 
 ## ⚙️ Funcionalidades
