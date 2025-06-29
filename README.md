@@ -6,7 +6,8 @@ Este projeto é um sistema de cadastro de profissionais, permitindo gerenciar in
 
 - **Backend:** Node.js + Express + MySQL  
 - **Frontend:** React Native + TypeScript + Expo  
-- **Banco de Dados:** MySQL  
+- **Banco de Dados:** MySQL
+- **Ambiente de Deploy:** Ubuntu Server com Systemd
 - **Outras libs:** bcrypt, axios, expo-router, react-hooks, entre outras
 
 ## ⚙️ Funcionalidades
@@ -20,10 +21,53 @@ Este projeto é um sistema de cadastro de profissionais, permitindo gerenciar in
 - Edição e exclusão (inativação) de profissionais
 - Reativação de profissionais inativados
 - Filtro de profissionais por especialidade
+- Relatório por PDF profissionais por especialidade, nome, tipo e status
 - Busca de pessoas físicas por CPF
 - Autenticação de usuário via CPF e senha 
 - Associação dinâmica de especialidade e conselho conforme o tipo de profissional
 - Validação de dados e tratamento de erros no backend
+
+---
+
+
+## 🧱 Estrutura de Diretórios
+
+```
+fasiclinapp/
+│
+├── backend/
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── database/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   ├── app.ts
+│   │   └── server.ts
+│   ├── .env
+│   ├── package-lock.json
+│   ├── package.json
+│   └── tsconfig.json
+│
+└── frontend/
+    ├── app/
+    ├── assets/
+    ├── components/
+    ├── constants/
+    ├── context/
+    ├── hooks/
+    ├── interface/
+    ├── lib/
+    ├── node_modules/
+    ├── scripts/
+    ├── services/
+    ├── styles/
+    └── utils/
+
+```
+
+---
 
 ## 💻 Como rodar o projeto
 
@@ -32,6 +76,7 @@ Este projeto é um sistema de cadastro de profissionais, permitindo gerenciar in
 - Node.js instalado
 - MySQL configurado e rodando localmente
 - npm ou yarn instalados
+
 
 ### Backend
 
@@ -66,20 +111,54 @@ npm install
 # Inicie o app
 npx expo start
 
+# Configure o IP da API no arquivo `src/services/index.ts`
+
 ```
+---
+## 📦 Geração de APK
+
+Para gerar um APK de produção:
+
+```bash
+eas build --platform android
+```
+
+> ⚠️ Se estiver usando HTTP (sem HTTPS), adicione no `app.json`:
+
+```json
+"plugins": [
+  [
+    "expo-build-properties",
+    {
+      "android": {
+        "usesCleartextTraffic": true
+      }
+    }
+  ]
+]
+```
+---
+
+## 🧠 Considerações
+
+- `runtimeVersion` deve ser uma string fixa, como `"1.1.1"`
+- O backend deve escutar em `0.0.0.0` e estar acessível por IP fixo
+- O serviço do backend pode ser persistido com `systemd` (ex: `backend_gabrielpereira.service`)
+
+
 
 ## 👤 Autor
 
 - **João Guilherme Lemes**
-- **RA:** seu RA aqui
+- **RA:** 91660
 - **LinkedIn:** (https://www.linkedin.com/in/joaolemes18/) 
----
+
 
 ## 📄 Licença
 
 Este projeto está licenciado sob a Licença MIT. Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
 
----
+
 
 ## 📌 Rodapé
 
