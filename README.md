@@ -45,7 +45,6 @@ fasiclinapp/
 │   │   ├── utils/
 │   │   ├── app.ts
 │   │   └── server.ts
-│   ├── .env
 │   ├── package-lock.json
 │   ├── package.json
 │   └── tsconfig.json
@@ -59,7 +58,6 @@ fasiclinapp/
     ├── hooks/
     ├── interface/
     ├── lib/
-    ├── node_modules/
     ├── scripts/
     ├── services/
     ├── styles/
