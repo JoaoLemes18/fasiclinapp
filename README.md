@@ -157,20 +157,20 @@ eas build --platform android
 - O backend deve escutar em `0.0.0.0` e estar acessível por IP fixo
 - O serviço do backend pode ser persistido com `systemd` (ex: `backend_gabrielpereira.service`)
 
----
+
 
 ## 👤 Autor
 
 - **João Guilherme Lemes**
 - **RA:** 91660
 - **LinkedIn:** (https://www.linkedin.com/in/joaolemes18/) 
----
+
 
 ## 📄 Licença
 
 Este projeto está licenciado sob a Licença MIT. Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
 
----
+
 
 ## 📌 Rodapé
 
