@@ -145,6 +145,18 @@ eas build --platform android
 - O backend deve escutar em `0.0.0.0` e estar acessível por IP fixo
 - O serviço do backend pode ser persistido com `systemd` (ex: `backend_gabrielpereira.service`)
 
+---
+
+## 🖼️ Imagens do Projeto
+
+Abaixo algumas capturas de tela do sistema em funcionamento:
+
+| Cadastro de Profissional | Listagem de Profissionais | Filtros para pesquisa | PDF Gerado |
+|---------------------------|----------------------------|-------------------------|------------|
+| ![Cadastro de Profissional](./screenshots/app1.jpg) | ![Listagem de Profissionais](./screenshots/app2.jpg) | ![Cards de Profissionais](./screenshots/app3.jpg) | ![PDF Gerado](./screenshots/app4.jpg) |
+
+
+---
 
 
 ## 👤 Autor
