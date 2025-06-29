@@ -14,7 +14,7 @@ Este projeto é um sistema de cadastro de profissionais, permitindo gerenciar in
 
 - Cadastro de profissionais com:
   - Nome, CPF, data de nascimento e sexo
-  - Tipo de profissional (ex: médico, odontólogo, administrativo)
+  - Tipo de profissional (ex: supervisor, técnico básico, administrativo)
   - Conselho profissional (CRM, CRO, etc.)
   - Especialidade
 - Listagem completa de profissionais
