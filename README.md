@@ -35,9 +35,6 @@ Este projeto é um sistema de cadastro de profissionais, permitindo gerenciar in
 fasiclinapp/
 │
 ├── backend/
-│   ├── .vscode/
-│   ├── .expo/
-│   ├── node_modules/
 │   ├── src/
 │   │   ├── controllers/
 │   │   ├── database/
@@ -48,14 +45,11 @@ fasiclinapp/
 │   │   ├── app.ts
 │   │   └── server.ts
 │   ├── .env
-│   ├── .gitignore
 │   ├── package-lock.json
 │   ├── package.json
 │   └── tsconfig.json
 │
 └── frontend/
-    ├── .expo/
-    ├── .vscode/
     ├── app/
     ├── assets/
     ├── components/
@@ -68,14 +62,7 @@ fasiclinapp/
     ├── scripts/
     ├── services/
     ├── styles/
-    ├── utils/
-    ├── .gitignore
-    ├── app.json
-    ├── eas.json
-    ├── eslint.config.js
-    ├── expo-env.d.ts
-    ├── package-lock.json
-    └── package.json
+    └── utils/
 
 ```
 
